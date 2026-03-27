@@ -1,0 +1,969 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <title>PSG Site Inspection</title>
+  <style>
+    /* ─── APP VARIABLES ─── */
+    :root {
+      --navy:  #1a2e4a;
+      --navy2: #0f1e30;
+      --gold:  #b8860b;
+      --gold2: #d4a017;
+      --blue:  #1e40af;
+      --green: #15803d;
+      --amber: #b45309;
+      --orange:#c2410c;
+      --red:   #b91c1c;
+      --g50:  #f8fafc; --g100:#f1f5f9; --g200:#e2e8f0;
+      --g400: #94a3b8; --g500:#64748b; --g700:#334155; --g900:#0f172a;
+    }
+    * { box-sizing:border-box; margin:0; padding:0; -webkit-tap-highlight-color:transparent; }
+    html,body { font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif; background:var(--g100); color:var(--g900); }
+    #app { max-width:480px; margin:0 auto; min-height:100vh; }
+
+    /* ─── HEADER ─── */
+    .hdr { background:var(--navy); color:white; padding:12px 14px 0; position:sticky; top:0; z-index:50; }
+    .hdr-inner { display:flex; align-items:center; justify-content:space-between; padding-bottom:10px; }
+    .hdr-brand { display:flex; align-items:center; gap:9px; }
+    .hdr-text-group { display:flex; flex-direction:column; }
+    .hdr-co { font-size:10px; font-weight:800; letter-spacing:1.2px; color:var(--gold2); text-transform:uppercase; }
+    .hdr-title { font-size:14px; font-weight:700; color:white; margin-top:1px; }
+    .hdr-step { font-size:11px; opacity:.65; }
+    .prog-track { height:3px; background:rgba(255,255,255,.18); }
+    .prog-fill  { height:100%; background:var(--gold2); transition:width .35s ease; }
+
+    /* ─── SCREENS ─── */
+    .screen { display:none; padding:15px 13px 110px; }
+    .screen.active { display:block; animation:fi .2s ease; }
+    @keyframes fi { from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:translateY(0)} }
+
+    /* ─── WELCOME ─── */
+    .wlc { text-align:center; padding:24px 0 18px; }
+    .wlc-co { font-size:12px; font-weight:800; letter-spacing:2px; color:var(--gold); margin-top:14px; text-transform:uppercase; }
+    .wlc-title { font-size:20px; font-weight:800; color:var(--navy); margin-top:5px; line-height:1.25; }
+    .wlc-sub { color:var(--g500); margin-top:5px; font-size:13px; }
+    .steps-list { background:white; border-radius:12px; padding:13px 15px; margin-top:14px; box-shadow:0 1px 4px rgba(0,0,0,.07); }
+    .sl-item { display:flex; align-items:center; gap:10px; padding:7px 0; border-bottom:1px solid var(--g100); font-size:13px; }
+    .sl-item:last-child { border-bottom:none; }
+    .sl-num { width:21px; height:21px; border-radius:50%; background:var(--navy); color:white; font-size:10px; font-weight:700; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+
+    /* ─── CARDS ─── */
+    .card { background:white; border-radius:12px; padding:14px; margin-bottom:12px; box-shadow:0 1px 3px rgba(0,0,0,.06); }
+    .card-lbl { font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.8px; color:var(--g500); margin-bottom:10px; }
+    .sec-hero { background:white; border-radius:12px; padding:14px; margin-bottom:12px; display:flex; align-items:center; gap:11px; box-shadow:0 1px 3px rgba(0,0,0,.06); border-left:4px solid var(--navy); }
+    .sec-icon { width:44px; height:44px; border-radius:11px; display:flex; align-items:center; justify-content:center; font-size:20px; flex-shrink:0; }
+    .sec-title { font-size:15px; font-weight:700; line-height:1.2; }
+    .sec-count { font-size:12px; color:var(--g500); margin-top:2px; }
+
+    /* ─── FORMS ─── */
+    .form-grid { display:grid; grid-template-columns:1fr 1fr; gap:9px; }
+    .fg { margin-bottom:10px; }
+    .fg.full { grid-column:1/-1; }
+    .fl { font-size:13px; font-weight:500; margin-bottom:4px; display:block; color:var(--g700); }
+    input[type="text"],input[type="date"],input[type="number"],select,textarea {
+      width:100%; border:1.5px solid var(--g200); border-radius:9px;
+      padding:10px 10px; font-size:16px; font-family:inherit; color:var(--g900);
+      background:white; outline:none; transition:border-color .2s; -webkit-appearance:none;
+    }
+    input:focus,select:focus,textarea:focus { border-color:var(--navy); }
+    textarea { min-height:78px; resize:vertical; font-size:15px; }
+    select { background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%2364748b' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E"); background-repeat:no-repeat; background-position:right 12px center; padding-right:30px; }
+
+    /* ─── CHECKLIST ─── */
+    .chk-item { border-bottom:1px solid var(--g100); padding:10px 0; }
+    .chk-item:last-child { border-bottom:none; }
+    .chk-top { display:flex; align-items:center; gap:8px; }
+    .chk-name { flex:1; font-size:13.5px; line-height:1.3; }
+    .chk-right { display:flex; align-items:center; gap:5px; flex-shrink:0; }
+    .rbs { display:flex; gap:3px; }
+    .rb { width:29px; height:29px; border-radius:6px; border:1.5px solid var(--g200); background:white; font-size:12px; font-weight:700; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:all .12s; }
+    .rb[data-r="1"].on{background:#fee2e2;border-color:var(--red);color:var(--red);}
+    .rb[data-r="2"].on{background:#ffedd5;border-color:var(--orange);color:var(--orange);}
+    .rb[data-r="3"].on{background:#fef3c7;border-color:var(--amber);color:var(--amber);}
+    .rb[data-r="4"].on{background:#dbeafe;border-color:var(--blue);color:var(--blue);}
+    .rb[data-r="5"].on{background:#dcfce7;border-color:var(--green);color:var(--green);}
+    .ntb { width:29px; height:29px; border-radius:6px; border:1.5px solid var(--g200); background:white; font-size:13px; cursor:pointer; display:flex; align-items:center; justify-content:center; }
+    .ntb.has-note { border-color:var(--navy); background:#eff6ff; }
+    .chk-note { margin-top:7px; display:none; }
+    .chk-note textarea { min-height:55px; font-size:14px; }
+    .legend { display:flex; gap:4px; flex-wrap:wrap; }
+    .li { display:flex; align-items:center; gap:3px; font-size:10px; color:var(--g500); }
+    .ld { width:7px; height:7px; border-radius:50%; }
+
+    /* ─── PHOTOS ─── */
+    .photo-grid { display:grid; grid-template-columns:repeat(2,1fr); gap:9px; }
+    .photo-add { aspect-ratio:1; border:2px dashed var(--g200); border-radius:9px; background:var(--g50); display:flex; flex-direction:column; align-items:center; justify-content:center; cursor:pointer; gap:3px; font-size:11px; color:var(--g500); font-weight:500; }
+    .pai { font-size:22px; }
+    .photo-wrap { position:relative; border:1.5px solid var(--g200); border-radius:9px; overflow:hidden; background:white; }
+    .photo-img-box { position:relative; }
+    .photo-img { width:100%; aspect-ratio:1; object-fit:cover; display:block; }
+    .photo-del { position:absolute; top:5px; right:5px; width:24px; height:24px; background:var(--red); color:white; border:none; border-radius:50%; font-size:15px; cursor:pointer; display:flex; align-items:center; justify-content:center; z-index:5; }
+    .photo-note-input { width:100%; border:none; border-top:1.5px solid var(--g200); padding:7px 9px; font-size:13px; font-family:inherit; color:var(--g900); background:white; resize:none; outline:none; min-height:40px; }
+    .photo-note-input::placeholder { color:var(--g400); }
+    input[type="file"] { display:none; }
+
+    /* ─── ACTION ITEMS ─── */
+    .ai-card { background:var(--g50); border:1.5px solid var(--g200); border-radius:10px; padding:11px; margin-bottom:9px; }
+    .ai-num { font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.5px; color:var(--g500); margin-bottom:7px; }
+    .ai-grid { display:grid; grid-template-columns:1fr 1fr; gap:7px; }
+    .ai-full { grid-column:1/-1; }
+    .al { font-size:12px; font-weight:500; color:var(--g700); margin-bottom:3px; display:block; }
+    .ai-card input,.ai-card select { font-size:14px; padding:8px 10px; }
+    .add-ai-btn { width:100%; padding:12px; background:white; border:2px dashed var(--g200); border-radius:10px; color:var(--g500); font-size:14px; font-weight:600; cursor:pointer; }
+
+    /* ─── SUMMARY ─── */
+    .sum-row { display:flex; align-items:center; justify-content:space-between; padding:10px 0; border-bottom:1px solid var(--g200); }
+    .sum-row:last-child { border-bottom:none; }
+    .sum-lbl { font-size:14px; font-weight:500; display:flex; align-items:center; gap:8px; }
+    .badge { font-size:11px; font-weight:700; padding:3px 10px; border-radius:20px; }
+    .b1{background:#fee2e2;color:var(--red)}.b2{background:#ffedd5;color:var(--orange)}
+    .b3{background:#fef3c7;color:var(--amber)}.b4{background:#dbeafe;color:var(--blue)}
+    .b5{background:#dcfce7;color:var(--green)}.b0{background:var(--g100);color:var(--g500)}
+    .info-box { background:#eff6ff; border-left:3px solid var(--blue); border-radius:0 10px 10px 0; padding:11px 13px; margin-bottom:12px; font-size:13px; color:#1e40af; line-height:1.5; }
+    .reset-lnk { text-align:center; margin-top:8px; }
+    .reset-lnk button { background:none; border:none; color:var(--g400); font-size:12px; cursor:pointer; text-decoration:underline; }
+
+    /* ─── BOTTOM BAR ─── */
+    .btm { position:fixed; bottom:0; left:50%; transform:translateX(-50%); width:100%; max-width:480px; background:white; border-top:1px solid var(--g200); padding:10px 13px; padding-bottom:max(10px,env(safe-area-inset-bottom)); display:flex; gap:8px; z-index:100; }
+    .btn { flex:1; padding:14px; border-radius:11px; border:none; font-size:15px; font-weight:700; cursor:pointer; transition:opacity .15s; }
+    .btn:active { opacity:.78; }
+    .btn-navy { background:var(--navy); color:white; }
+    .btn-ghost { background:var(--g100); color:var(--g900); flex:0.5; }
+    .btn-gold { background:linear-gradient(135deg,#b8860b,#d4a017); color:white; }
+
+    /* ─── PRINT ─── */
+    @media print {
+      #app { display:none !important; }
+      #pv  { display:block !important; }
+      @page { size:letter; margin:.6in .7in .65in .7in; }
+      @page :first { margin:0; }
+      @bottom-right {
+        content:"Page " counter(page);
+        font-family:Arial,sans-serif; font-size:7pt; color:#94a3b8; padding-top:6px;
+      }
+    }
+  </style>
+</head>
+<body>
+<div id="app">
+
+  <!-- ── Header ── -->
+  <div class="hdr">
+    <div class="hdr-inner">
+      <div class="hdr-brand">
+        <div id="hdr-logo"></div><!-- SVG injected by JS -->
+        <div class="hdr-text-group">
+          <div class="hdr-co">Poverni Sheikh Group</div>
+          <div class="hdr-title" id="hTitle">Site Inspection</div>
+        </div>
+      </div>
+      <div class="hdr-step" id="hStep">Welcome</div>
+    </div>
+    <div class="prog-track"><div class="prog-fill" id="pFill" style="width:0%"></div></div>
+  </div>
+
+  <!-- ── S0: Welcome ── -->
+  <div class="screen active" id="s0">
+    <div class="wlc">
+      <div id="wlc-logo" style="display:inline-block;"></div>
+      <div class="wlc-co">Poverni Sheikh Group</div>
+      <div class="wlc-title">Self-Storage Site<br>Inspection Report</div>
+      <div class="wlc-sub">Asset Management Division</div>
+    </div>
+    <div class="steps-list">
+      <div class="sl-item"><div class="sl-num">1</div><span>Property Information</span></div>
+      <div class="sl-item"><div class="sl-num">2</div><span>Overall Condition Summary</span></div>
+      <div class="sl-item"><div class="sl-num">3</div><span>Exterior Inspection (10 items)</span></div>
+      <div class="sl-item"><div class="sl-num">4</div><span>Interior Inspection (14 items)</span></div>
+      <div class="sl-item"><div class="sl-num">5</div><span>Office &amp; Leasing Area (6 items)</span></div>
+      <div class="sl-item"><div class="sl-num">6</div><span>Maintenance &amp; CapEx Recommendations (12 items)</span></div>
+      <div class="sl-item"><div class="sl-num">7</div><span>Environmental &amp; Safety Compliance (8 items)</span></div>
+      <div class="sl-item"><div class="sl-num">8</div><span>Action Items &amp; Follow-Up</span></div>
+      <div class="sl-item"><div class="sl-num">9</div><span>Sign-Off &amp; Generate Report</span></div>
+    </div>
+    <div style="background:#fef3c7;border-radius:10px;padding:11px 14px;margin-top:4px;font-size:13px;color:#78350f;">
+      <strong>Rating Scale:</strong> 1=Critical · 2=Poor · 3=Fair · 4=Good · 5=Excellent
+    </div>
+    <div class="reset-lnk"><button onclick="resetAll()">🗑 Start fresh / clear all data</button></div>
+  </div>
+
+  <!-- ── S1: Property Information ── -->
+  <div class="screen" id="s1">
+    <div class="card">
+      <div class="card-lbl">Property Details</div>
+      <div class="form-grid">
+        <div class="fg full"><label class="fl">Property Name</label><input type="text" id="p_name" placeholder="e.g. Main Street Self Storage" oninput="as()"></div>
+        <div class="fg full"><label class="fl">Address</label><input type="text" id="p_addr" placeholder="123 Main St" oninput="as()"></div>
+        <div class="fg full"><label class="fl">City / State / ZIP</label><input type="text" id="p_city" placeholder="City, ST 00000" oninput="as()"></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-lbl">Inspection Details</div>
+      <div class="form-grid">
+        <div class="fg"><label class="fl">Inspection Date</label><input type="date" id="p_date" oninput="as()"></div>
+        <div class="fg"><label class="fl">Inspector Name</label><input type="text" id="p_insp" placeholder="Your name" oninput="as()"></div>
+        <div class="fg full"><label class="fl">Store Staff Spoken To</label><input type="text" id="p_staff" placeholder="Name(s) of staff spoken to during visit" oninput="as()"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── S2: Overall Condition Summary ── -->
+  <div class="screen" id="s2">
+    <div class="card">
+      <div class="card-lbl">Ratings (1–5 Scale)</div>
+      <div style="margin-bottom:13px;"><div class="fl">Overall Property Rating</div><div class="rbs" id="ovr-overall"></div></div>
+      <div style="margin-bottom:13px;"><div class="fl">Curb Appeal Rating</div><div class="rbs" id="ovr-curb"></div></div>
+      <div style="margin-bottom:13px;"><div class="fl">Cleanliness Rating</div><div class="rbs" id="ovr-clean"></div></div>
+      <div><div class="fl">Staff Professionalism</div><div class="rbs" id="ovr-staff"></div></div>
+    </div>
+    <div class="card">
+      <div class="card-lbl">Occupancy &amp; Financial</div>
+      <div class="form-grid">
+        <div class="fg"><label class="fl">Physical Occupancy %</label><input type="text" id="ov_physocc" placeholder="e.g. 94.5%" oninput="as()"></div>
+        <div class="fg"><label class="fl">Economic Occupancy %</label><input type="text" id="ov_econocc" placeholder="e.g. 91.2%" oninput="as()"></div>
+        <div class="fg"><label class="fl">In-Place Rent / SF</label><input type="text" id="ov_inrent" placeholder="e.g. $1.42" oninput="as()"></div>
+        <div class="fg"><label class="fl">Market Rent / SF</label><input type="text" id="ov_mktrent" placeholder="e.g. $1.55" oninput="as()"></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-lbl">Executive Summary / Key Findings</div>
+      <textarea id="ov_summary" placeholder="Summarize overall condition, key strengths, critical issues, and recommended priorities..." style="min-height:105px;" oninput="as()"></textarea>
+    </div>
+  </div>
+
+  <!-- ── S3–S7: Inspection sections ── -->
+  <div class="screen" id="s3"><div id="sec-exterior"></div></div>
+  <div class="screen" id="s4"><div id="sec-interior"></div></div>
+  <div class="screen" id="s5"><div id="sec-office"></div></div>
+  <div class="screen" id="s6"><div id="sec-maintenance"></div></div>
+  <div class="screen" id="s7"><div id="sec-environmental"></div></div>
+
+  <!-- ── S8: Action Items ── -->
+  <div class="screen" id="s8">
+    <div class="sec-hero">
+      <div class="sec-icon" style="background:#fef3c7;">📋</div>
+      <div><div class="sec-title">Action Items &amp; Follow-Up</div><div class="sec-count">Track priority issues and responsible parties</div></div>
+    </div>
+    <div id="ai-list"></div>
+    <button class="add-ai-btn" id="addAiBtn" onclick="addAction()">+ Add Action Item</button>
+  </div>
+
+  <!-- ── S9: Sign-Off ── -->
+  <div class="screen" id="s9">
+    <div class="sec-hero">
+      <div class="sec-icon" style="background:#ede9fe;">✍️</div>
+      <div><div class="sec-title">Sign-Off &amp; Acknowledgment</div><div class="sec-count">Review and generate your institutional report</div></div>
+    </div>
+    <div class="card" id="sumCard"></div>
+    <div class="card">
+      <div class="card-lbl">Sign-Off</div>
+      <div class="form-grid">
+        <div class="fg"><label class="fl">Inspector Name</label><input type="text" id="so_insp" oninput="as()"></div>
+        <div class="fg"><label class="fl">Sign-Off Date</label><input type="date" id="so_date" oninput="as()"></div>
+      </div>
+    </div>
+    <div class="info-box">
+      <strong>📄 To save as PDF:</strong> Tap <em>Generate Report</em> → then use <strong>Share → Print</strong> (iOS) or the browser print dialog (Android/Desktop) → choose <strong>Save as PDF</strong>.
+    </div>
+  </div>
+
+  <div class="btm">
+    <button class="btn btn-ghost" id="btnBack" onclick="goBack()" style="display:none">← Back</button>
+    <button class="btn btn-navy" id="btnNext" onclick="goNext()">Begin Inspection →</button>
+  </div>
+</div>
+
+<!-- ── PRINT VIEW (hidden until print) ── -->
+<div id="pv" style="display:none;"></div>
+
+<script>
+// ═══════════════════════════════════════════
+//  PSG LOGO SVG
+// ═══════════════════════════════════════════
+// Hexagonal logo with 6 colored segments (clockwise from top-right):
+// Red, Orange, Green, Sky-blue, Deep-blue, Purple
+function psgSVG(w, h, textColor) {
+  const c = textColor || '#1a2e4a';
+  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="${w}" height="${h}">
+    <polygon points="50,4 89.8,27 76,35 50,20"   fill="#E31E24"/>
+    <polygon points="89.8,27 89.8,73 76,65 76,35" fill="#F7941D"/>
+    <polygon points="89.8,73 50,96 50,80 76,65"   fill="#39B54A"/>
+    <polygon points="50,96 10.2,73 24,65 50,80"   fill="#00AEEF"/>
+    <polygon points="10.2,73 10.2,27 24,35 24,65" fill="#2E3192"/>
+    <polygon points="10.2,27 50,4 50,20 24,35"    fill="#92278F"/>
+    <polygon points="50,20 76,35 76,65 50,80 24,65 24,35" fill="white"/>
+    <text x="50" y="57" text-anchor="middle" font-family="Arial" font-size="21" font-weight="900" fill="${c}" letter-spacing="-0.5">PSG</text>
+  </svg>`;
+}
+
+function psgDataURI(w, h, textColor) {
+  return 'data:image/svg+xml;base64,' + btoa(psgSVG(w, h, textColor));
+}
+
+// ═══════════════════════════════════════════
+//  TEMPLATE DATA
+// ═══════════════════════════════════════════
+const SECS = [
+  { id:'exterior', name:'EXTERIOR INSPECTION', icon:'🌳', bg:'#dbeafe',
+    items:['Building Exterior / Façade Condition','Roof Condition (visible from ground)','Gutters & Downspouts','Parking Lot / Driveways','Signage (Monument / Building / Directional)','Landscaping & Grounds','Perimeter Fencing & Gates','Retaining Walls / Drainage','Dumpster / Trash Area','Loading / Unloading Areas'] },
+  { id:'interior', name:'INTERIOR INSPECTION', icon:'🔑', bg:'#dcfce7',
+    items:['Hallways & Corridors','Interior Unit Doors & Latches','Vacant Unit Cleanliness (sample 5–10 units)','HVAC Functioning','Temperature / Humidity Readings','HVAC Filter Condition','Fire Sprinkler System','Fire Extinguishers (current tags)','Elevators (if applicable)','Pest Control Evidence','Floors / Walls / Ceilings','Interior Lighting Functional / Motion Sensors','Keypad / App Entry System Functional','Fire Alarm System Clear'] },
+  { id:'office', name:'OFFICE & LEASING AREA', icon:'🏪', bg:'#fce7f3',
+    items:['Office Cleanliness & Appearance','Retail Merchandise Display','Competitor Rate Survey (current)','Current Rate Review with Staff','Delinquency / Lien Process Update','Staff Appearance & Professionalism'] },
+  { id:'maintenance', name:'MAINTENANCE & CAPITAL EXPENDITURE RECOMMENDATIONS', icon:'🔧', bg:'#ffedd5',
+    items:['Roof Repair / Replacement','HVAC System Repair / Replacement','Parking Lot Resurfacing / Striping','Unit Door Replacement (quantity est.)','Painting (exterior / interior)','Signage Replacement / Update','Security System Upgrade','Gate / Fence Repair','Lighting Upgrade (LED conversion)','Plumbing / Drainage Repairs','Office Renovation / Update','Landscaping Repairs'] },
+  { id:'environmental', name:'ENVIRONMENTAL & SAFETY COMPLIANCE', icon:'⚠️', bg:'#fee2e2',
+    items:['Fire Alarm System (last tested)','Fire Extinguisher Inspection (current)','Sprinkler System (last inspected)','Hazardous Materials (none observed)','Mold / Water Intrusion Evidence','Stormwater Management','OSHA Compliance (signage, MSDS)','Emergency Evacuation Plan Posted'] }
+];
+
+const OVR_FIELDS = [
+  { id:'overall', label:'Overall Property Rating' },
+  { id:'curb',    label:'Curb Appeal Rating' },
+  { id:'clean',   label:'Cleanliness Rating' },
+  { id:'staff',   label:'Staff Professionalism' }
+];
+
+const TOTAL_STEPS = 9;
+const R_LABEL = { '1':'Critical','2':'Poor','3':'Fair','4':'Good','5':'Excellent' };
+const R_COLOR = { '1':'#b91c1c','2':'#c2410c','3':'#b45309','4':'#1e40af','5':'#15803d' };
+const R_BG    = { '1':'#fee2e2','2':'#ffedd5','3':'#fef3c7','4':'#dbeafe','5':'#dcfce7' };
+const R_BADGE = { '1':'b1','2':'b2','3':'b3','4':'b4','5':'b5' };
+
+// ═══════════════════════════════════════════
+//  STATE
+// ═══════════════════════════════════════════
+let S = newState();
+function newState() {
+  return {
+    cur:0,
+    prop:{ name:'',addr:'',city:'',date:'',insp:'',staff:'' },
+    ovr:{ overall:'',curb:'',clean:'',staff:'',physocc:'',econocc:'',inrent:'',mktrent:'',summary:'' },
+    secs:Object.fromEntries(SECS.map(s=>[s.id,{items:{},photos:[]}])),
+    actions:[], so:{ date:'' }
+  };
+}
+
+// ═══════════════════════════════════════════
+//  PERSIST
+// ═══════════════════════════════════════════
+function as(){ readForms(); saveSt(); }
+function saveSt(){
+  try{
+    const d={cur:S.cur,prop:S.prop,ovr:S.ovr,secs_items:{},actions:S.actions,so:S.so};
+    SECS.forEach(s=>d.secs_items[s.id]=S.secs[s.id].items);
+    localStorage.setItem('psg_si_v3',JSON.stringify(d));
+  }catch(e){}
+}
+function loadSt(){
+  try{
+    const raw=localStorage.getItem('psg_si_v3');
+    if(!raw) return;
+    const d=JSON.parse(raw);
+    if(d.prop) S.prop={...S.prop,...d.prop};
+    if(d.ovr)  S.ovr ={...S.ovr, ...d.ovr};
+    if(d.actions) S.actions=d.actions;
+    if(d.so) S.so={...S.so,...d.so};
+    if(d.secs_items) SECS.forEach(s=>{ if(d.secs_items[s.id]) S.secs[s.id].items=d.secs_items[s.id]; });
+    S.cur=d.cur||0;
+  }catch(e){}
+}
+function readForms(){
+  const g=id=>(document.getElementById(id)||{}).value||'';
+  S.prop.name=g('p_name'); S.prop.addr=g('p_addr'); S.prop.city=g('p_city');
+  S.prop.date=g('p_date'); S.prop.insp=g('p_insp'); S.prop.staff=g('p_staff');
+  S.ovr.physocc=g('ov_physocc'); S.ovr.econocc=g('ov_econocc');
+  S.ovr.inrent=g('ov_inrent');   S.ovr.mktrent=g('ov_mktrent');
+  S.ovr.summary=g('ov_summary'); S.so.date=g('so_date');
+}
+function writeForms(){
+  const s=(id,v)=>{const el=document.getElementById(id);if(el)el.value=v||'';};
+  s('p_name',S.prop.name); s('p_addr',S.prop.addr); s('p_city',S.prop.city);
+  s('p_date',S.prop.date); s('p_insp',S.prop.insp); s('p_staff',S.prop.staff);
+  s('ov_physocc',S.ovr.physocc); s('ov_econocc',S.ovr.econocc);
+  s('ov_inrent',S.ovr.inrent);   s('ov_mktrent',S.ovr.mktrent);
+  s('ov_summary',S.ovr.summary); s('so_date',S.so.date);
+}
+function resetAll(){
+  if(!confirm('Clear all inspection data and start over?')) return;
+  localStorage.removeItem('psg_si_v3');
+  S=newState(); S.prop.date=todayStr();
+  writeForms(); buildOvrRatings(); syncOvrUI();
+  buildAllSections(); buildActionItems(); showStep(0);
+}
+function todayStr(){ return new Date().toISOString().split('T')[0]; }
+
+// ═══════════════════════════════════════════
+//  OVERALL RATINGS
+// ═══════════════════════════════════════════
+function buildOvrRatings(){
+  OVR_FIELDS.forEach(f=>{
+    const el=document.getElementById('ovr-'+f.id); if(!el) return;
+    el.innerHTML=[1,2,3,4,5].map(r=>`<button class="rb ${S.ovr[f.id]==r?'on':''}" data-r="${r}"
+      onclick="setOvr('${f.id}',${r},this)" style="width:50px;height:36px;font-size:13px;">${r}</button>`).join('');
+  });
+}
+function setOvr(field,r,btn){
+  S.ovr[field]=S.ovr[field]==r?'':String(r);
+  btn.parentNode.querySelectorAll('.rb').forEach(b=>b.classList.remove('on'));
+  if(S.ovr[field]) btn.classList.add('on'); saveSt();
+}
+function syncOvrUI(){
+  OVR_FIELDS.forEach(f=>{
+    const el=document.getElementById('ovr-'+f.id); if(!el) return;
+    el.querySelectorAll('.rb').forEach(b=>b.classList.toggle('on',b.dataset.r==S.ovr[f.id]));
+  });
+}
+
+// ═══════════════════════════════════════════
+//  SECTIONS
+// ═══════════════════════════════════════════
+function buildAllSections(){ SECS.forEach(s=>buildSection(s)); }
+function buildSection(sec){
+  const ct=document.getElementById('sec-'+sec.id); if(!ct) return;
+  let h=`<div class="sec-hero">
+    <div class="sec-icon" style="background:${sec.bg};">${sec.icon}</div>
+    <div><div class="sec-title">${sec.name}</div><div class="sec-count">${sec.items.length} items · tap to rate · 📝 to add note</div></div>
+  </div>
+  <div style="background:#fef9ec;border-radius:8px;padding:8px 11px;margin-bottom:11px;font-size:12px;">
+    <div class="legend">
+      <div class="li"><div class="ld" style="background:#b91c1c;"></div>1=Critical</div>
+      <div class="li"><div class="ld" style="background:#c2410c;"></div>2=Poor</div>
+      <div class="li"><div class="ld" style="background:#b45309;"></div>3=Fair</div>
+      <div class="li"><div class="ld" style="background:#1e40af;"></div>4=Good</div>
+      <div class="li"><div class="ld" style="background:#15803d;"></div>5=Excellent</div>
+    </div>
+  </div>
+  <div class="card"><div class="card-lbl">Inspection Checklist</div>`;
+  sec.items.forEach((item,i)=>{
+    const d=S.secs[sec.id].items[i]||{}, r=d.rating||'', n=d.notes||'';
+    h+=`<div class="chk-item"><div class="chk-top">
+      <div class="chk-name">${item}</div>
+      <div class="chk-right">
+        <div class="rbs">${[1,2,3,4,5].map(rv=>`<button class="rb ${r==rv?'on':''}" data-r="${rv}" onclick="setR('${sec.id}',${i},${rv},this)">${rv}</button>`).join('')}</div>
+        <button class="ntb ${n?'has-note':''}" id="ntb-${sec.id}-${i}" onclick="tglNote('${sec.id}',${i})">📝</button>
+      </div></div>
+      <div class="chk-note" id="nb-${sec.id}-${i}" style="${n?'display:block':'display:none'}">
+        <textarea placeholder="Add condition notes..." oninput="setNote('${sec.id}',${i},this.value)">${n}</textarea>
+      </div></div>`;
+  });
+  h+=`</div><div class="card"><div class="card-lbl">Section Photos</div>
+    <div class="photo-grid" id="pg-${sec.id}">
+      <label class="photo-add" for="fi-${sec.id}"><span class="pai">📷</span>Add Photo</label>
+      <input type="file" id="fi-${sec.id}" accept="image/*" capture="environment" multiple onchange="addPhotos('${sec.id}',this)">
+    </div></div>`;
+  ct.innerHTML=h; renderPhotos(sec.id);
+}
+function setR(sid,idx,r,btn){
+  if(!S.secs[sid].items[idx]) S.secs[sid].items[idx]={};
+  const cur=S.secs[sid].items[idx].rating;
+  S.secs[sid].items[idx].rating=(cur==r)?'':String(r);
+  btn.closest('.rbs').querySelectorAll('.rb').forEach(b=>b.classList.remove('on'));
+  if(S.secs[sid].items[idx].rating) btn.classList.add('on'); saveSt();
+}
+function tglNote(sid,idx){
+  const nb=document.getElementById(`nb-${sid}-${idx}`);
+  nb.style.display=nb.style.display==='none'?'block':'none';
+  if(nb.style.display==='block') nb.querySelector('textarea').focus();
+}
+function setNote(sid,idx,val){
+  if(!S.secs[sid].items[idx]) S.secs[sid].items[idx]={};
+  S.secs[sid].items[idx].notes=val;
+  const btn=document.getElementById(`ntb-${sid}-${idx}`);
+  if(btn) btn.classList.toggle('has-note',!!val); saveSt();
+}
+
+// ═══════════════════════════════════════════
+//  PHOTOS
+// ═══════════════════════════════════════════
+function addPhotos(sid,input){
+  Array.from(input.files).forEach(f=>{
+    const r=new FileReader();
+    r.onload=e=>compress(e.target.result,url=>{S.secs[sid].photos.push({src:url,note:''});renderPhotos(sid);});
+    r.readAsDataURL(f);
+  }); input.value='';
+}
+function compress(src,cb){
+  const img=new Image();
+  img.onload=()=>{
+    const c=document.createElement('canvas'),MAX=1000;
+    let w=img.width,h=img.height;
+    if(w>MAX||h>MAX){if(w>h){h=Math.round(h*MAX/w);w=MAX;}else{w=Math.round(w*MAX/h);h=MAX;}}
+    c.width=w;c.height=h;c.getContext('2d').drawImage(img,0,0,w,h);cb(c.toDataURL('image/jpeg',.8));
+  }; img.src=src;
+}
+function renderPhotos(sid){
+  const grid=document.getElementById('pg-'+sid); if(!grid) return;
+  const lbl=grid.querySelector('label'),inp=grid.querySelector('input');
+  grid.innerHTML='';
+  S.secs[sid].photos.forEach((p,i)=>{
+    const w=document.createElement('div'); w.className='photo-wrap';
+    w.innerHTML=`
+      <div class="photo-img-box">
+        <img class="photo-img" src="${p.src}">
+        <button class="photo-del" onclick="delPhoto('${sid}',${i})">×</button>
+      </div>
+      <textarea class="photo-note-input" placeholder="Add photo note…" oninput="setPhotoNote('${sid}',${i},this.value)">${p.note||''}</textarea>`;
+    grid.appendChild(w);
+  }); grid.appendChild(lbl); grid.appendChild(inp);
+}
+function setPhotoNote(sid,i,val){ if(S.secs[sid].photos[i]) S.secs[sid].photos[i].note=val; }
+function delPhoto(sid,i){ S.secs[sid].photos.splice(i,1); renderPhotos(sid); }
+
+// ═══════════════════════════════════════════
+//  ACTION ITEMS
+// ═══════════════════════════════════════════
+function buildActionItems(){
+  const list=document.getElementById('ai-list'),addBtn=document.getElementById('addAiBtn');
+  if(!list) return; list.innerHTML='';
+  if(S.actions.length===0){
+    list.innerHTML='<div style="text-align:center;color:#94a3b8;font-size:14px;padding:20px 0;">No action items yet. Tap below to add.</div>';
+  } else { S.actions.forEach((_,i)=>renderAI(i)); }
+  if(addBtn) addBtn.style.display=S.actions.length>=15?'none':'';
+}
+function renderAI(i){
+  const a=S.actions[i], list=document.getElementById('ai-list');
+  const ph=list.querySelector('[data-ph]'); if(ph) ph.remove();
+  const card=document.createElement('div'); card.className='ai-card'; card.id=`ai-${i}`;
+  card.innerHTML=`<div class="ai-num" style="display:flex;justify-content:space-between;"><span>Action Item #${i+1}</span>
+    <button onclick="removeAI(${i})" style="background:none;border:none;color:#ef4444;font-size:13px;cursor:pointer;">✕ Remove</button></div>
+    <div class="ai-full fg"><label class="al">Description</label>
+      <textarea style="min-height:52px;font-size:14px;" placeholder="Describe the required action..." oninput="updAI(${i},'desc',this.value)">${a.desc||''}</textarea></div>
+    <div class="ai-grid">
+      <div><label class="al">Priority</label><select onchange="updAI(${i},'priority',this.value)">
+        <option value="" ${!a.priority?'selected':''}>Select</option>
+        <option value="High" ${a.priority==='High'?'selected':''}>🔴 High</option>
+        <option value="Medium" ${a.priority==='Medium'?'selected':''}>🟡 Medium</option>
+        <option value="Low" ${a.priority==='Low'?'selected':''}>🟢 Low</option>
+      </select></div>
+      <div><label class="al">Responsible</label><input type="text" value="${a.responsible||''}" placeholder="Name / Team" oninput="updAI(${i},'responsible',this.value)"></div>
+      <div><label class="al">Due Date</label><input type="date" value="${a.dueDate||''}" onchange="updAI(${i},'dueDate',this.value)"></div>
+      <div><label class="al">Est. Cost ($)</label><input type="text" value="${a.cost||''}" placeholder="e.g. 2,500" oninput="updAI(${i},'cost',this.value)"></div>
+      <div class="ai-full"><label class="al">Status</label><select onchange="updAI(${i},'status',this.value)">
+        <option value="Open" ${(a.status||'Open')==='Open'?'selected':''}>Open</option>
+        <option value="In Progress" ${a.status==='In Progress'?'selected':''}>In Progress</option>
+        <option value="Complete" ${a.status==='Complete'?'selected':''}>Complete</option>
+      </select></div>
+    </div>`;
+  list.appendChild(card);
+}
+function addAction(){
+  if(S.actions.length>=15) return;
+  S.actions.push({desc:'',priority:'',responsible:'',dueDate:'',cost:'',status:'Open'});
+  renderAI(S.actions.length-1);
+  const b=document.getElementById('addAiBtn'); if(b&&S.actions.length>=15) b.style.display='none';
+  saveSt();
+}
+function removeAI(i){ S.actions.splice(i,1); buildActionItems(); saveSt(); }
+function updAI(i,f,v){ if(S.actions[i]) S.actions[i][f]=v; saveSt(); }
+
+// ═══════════════════════════════════════════
+//  NAVIGATION
+// ═══════════════════════════════════════════
+const TITLES=['Welcome','Property Information','Overall Condition Summary','Exterior Inspection','Interior Inspection','Office & Leasing Area','Maintenance & CapEx','Environmental & Safety','Action Items','Sign-Off & Report'];
+function showStep(n){
+  S.cur=n;
+  document.querySelectorAll('.screen').forEach((el,i)=>el.classList.toggle('active',i===n));
+  document.getElementById('hTitle').textContent=TITLES[n]||'Inspection';
+  document.getElementById('hStep').textContent=n===0?'':`Step ${n} of ${TOTAL_STEPS}`;
+  document.getElementById('pFill').style.width=(n/TOTAL_STEPS*100)+'%';
+  document.getElementById('btnBack').style.display=n===0?'none':'';
+  const nb=document.getElementById('btnNext');
+  if(n===9){ nb.textContent='📄 Generate Report'; nb.className='btn btn-gold'; buildSumCard(); prefillSignoff(); }
+  else{ nb.textContent=n===0?'Begin Inspection →':'Next →'; nb.className='btn btn-navy'; }
+  window.scrollTo(0,0); saveSt();
+}
+function goNext(){ readForms(); if(S.cur===9){generatePDF();return;} showStep(S.cur+1); }
+function goBack(){ if(S.cur>0) showStep(S.cur-1); }
+function prefillSignoff(){
+  const si=document.getElementById('so_insp'),sd=document.getElementById('so_date');
+  if(si&&!si.value) si.value=S.prop.insp;
+  if(sd&&!sd.value) sd.value=S.prop.date||todayStr();
+}
+
+// ═══════════════════════════════════════════
+//  SUMMARY CARD (app screen)
+// ═══════════════════════════════════════════
+function buildSumCard(){
+  const card=document.getElementById('sumCard'); if(!card) return;
+  let h='<div class="card-lbl">Inspection Results Overview</div>';
+  OVR_FIELDS.forEach(f=>{
+    const r=S.ovr[f.id];
+    h+=`<div class="sum-row"><div class="sum-lbl">${f.label}</div>
+      <span class="badge ${r?R_BADGE[r]:'b0'}">${r?r+' – '+R_LABEL[r]:'Not Rated'}</span></div>`;
+  });
+  SECS.forEach(sec=>{
+    const items=S.secs[sec.id].items;
+    const low=Object.values(items).filter(v=>v.rating&&parseInt(v.rating)<=2).length;
+    const rated=Object.values(items).filter(v=>v.rating).length;
+    const ph=S.secs[sec.id].photos.length;
+    h+=`<div class="sum-row"><div class="sum-lbl"><span>${sec.icon}</span>${sec.name.split(' ').slice(0,2).join(' ')}</div>
+      <span style="font-size:12px;color:${low>0?'#b91c1c':'#15803d'};font-weight:600;">${low>0?`⚠️ ${low} critical/poor`:rated>0?'✓ Completed':'Not started'}</span></div>`;
+  });
+  if(S.actions.length>0){
+    const tc=S.actions.reduce((t,a)=>{const n=parseFloat((a.cost||'').replace(/[$,]/g,''));return t+(isNaN(n)?0:n);},0);
+    h+=`<div class="sum-row"><div class="sum-lbl">📋 Action Items</div>
+      <span style="font-size:12px;color:#1e40af;font-weight:600;">${S.actions.length} items · $${tc.toLocaleString()} est.</span></div>`;
+  }
+  card.innerHTML=h;
+}
+
+// ═══════════════════════════════════════════
+//  PDF  ·  REIT INSTITUTIONAL FORMAT
+// ═══════════════════════════════════════════
+function generatePDF(){
+  readForms();
+  const logoURI = psgDataURI(70,70,'#1a2e4a');
+  const logoSm  = psgDataURI(38,38,'#1a2e4a');
+
+  const fmtDate=str=>{
+    if(!str) return '—';
+    try{return new Date(str+'T12:00:00').toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric',year:'numeric'});}catch(e){return str;}
+  };
+  const fmtDateShort=str=>{
+    if(!str) return '—';
+    try{return new Date(str+'T12:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});}catch(e){return str;}
+  };
+
+  const ratingBadge=(r,size)=>{
+    if(!r) return `<span style="color:#94a3b8;font-size:${size||12}px;">—</span>`;
+    return `<span style="display:inline-block;padding:2px 10px;border-radius:20px;font-size:${size||11}px;font-weight:700;background:${R_BG[r]};color:${R_COLOR[r]};">${r} — ${R_LABEL[r]}</span>`;
+  };
+
+  const totalCost=S.actions.reduce((t,a)=>{const n=parseFloat((a.cost||'').replace(/[$,]/g,''));return t+(isNaN(n)?0:n);},0);
+
+  // ── CSS for print view ──
+  const css=`
+    <style>
+      * { box-sizing:border-box; margin:0; padding:0; }
+      body { font-family:Arial,Helvetica,sans-serif; font-size:10pt; color:#1a1a1a; background:white; }
+
+      /* Cover page */
+      .cover { width:100%; display:flex; flex-direction:column; page-break-after:always; break-after:page; }
+      .cover-banner { background:#1a2e4a; color:white; padding:0.7in 0.7in 0.4in; }
+      .cover-logo-row { display:flex; align-items:center; gap:18px; margin-bottom:28px; }
+      .cover-co-name { color:#d4a017; font-size:11pt; font-weight:800; letter-spacing:2px; text-transform:uppercase; line-height:1.4; }
+      .cover-division { color:rgba(255,255,255,.65); font-size:9pt; margin-top:3px; letter-spacing:1px; }
+      .cover-divider { height:3px; background:linear-gradient(90deg,#E31E24,#F7941D,#39B54A,#00AEEF,#2E3192,#92278F); margin:22px 0; }
+      .cover-report-title { color:white; font-size:24pt; font-weight:900; line-height:1.15; letter-spacing:-.5px; }
+      .cover-report-sub { color:rgba(255,255,255,.75); font-size:11pt; margin-top:8px; font-weight:300; }
+      .cover-body { padding:0.4in 0.7in 0.5in; background:white; }
+      .cover-property-block { border-left:5px solid #1a2e4a; padding:16px 20px; background:#f8fafc; margin-top:0; }
+      .cover-property-name { font-size:18pt; font-weight:800; color:#1a2e4a; line-height:1.2; }
+      .cover-property-addr { font-size:11pt; color:#64748b; margin-top:5px; }
+      .cover-meta-grid { display:grid; grid-template-columns:1fr 1fr; gap:0; margin-top:24px; border:1px solid #e2e8f0; border-radius:8px; overflow:hidden; }
+      .cover-meta-cell { padding:12px 16px; }
+      .cover-meta-cell:nth-child(odd) { background:#f8fafc; }
+      .cover-meta-cell:nth-child(even) { background:white; }
+      .cmk { font-size:7.5pt; font-weight:700; text-transform:uppercase; letter-spacing:.8px; color:#94a3b8; margin-bottom:3px; }
+      .cmv { font-size:11pt; font-weight:600; color:#1a2e4a; }
+      .cover-footer { margin-top:auto; border-top:1px solid #e2e8f0; padding:16px 0.7in; background:white; display:flex; justify-content:space-between; align-items:center; }
+      .cover-conf { font-size:8pt; color:#94a3b8; letter-spacing:.5px; text-transform:uppercase; }
+      .cover-gen { font-size:8pt; color:#94a3b8; }
+
+      /* Running header (every page after first) */
+      .rh { display:none; }
+      @media print {
+        .rh { display:flex; align-items:center; justify-content:space-between; position:fixed; top:0; left:0; right:0; height:.55in; background:white; border-bottom:2px solid #1a2e4a; padding:0 0.7in; z-index:999; }
+        .rh-left { display:flex; align-items:center; gap:10px; }
+        .rh-prop { font-size:8.5pt; font-weight:700; color:#1a2e4a; }
+        .rh-divider { width:1px; height:18px; background:#e2e8f0; margin:0 8px; }
+        .rh-type  { font-size:8pt; color:#64748b; }
+        .rh-date  { font-size:8pt; color:#94a3b8; }
+        .pg-content { padding-top:.08in; }
+      }
+
+      /* Color bar divider */
+      .color-bar { height:4px; background:linear-gradient(90deg,#E31E24,#F7941D,#39B54A,#00AEEF,#2E3192,#92278F); margin:0; }
+
+      /* Section header */
+      .sec-header { background:#1a2e4a; color:white; padding:9px 14px; display:flex; align-items:center; gap:10px; margin:22px 0 0; page-break-after:avoid; }
+      .sec-header-title { font-size:10pt; font-weight:800; letter-spacing:.5px; text-transform:uppercase; }
+      .sec-header-count { font-size:8pt; color:rgba(255,255,255,.6); margin-left:auto; }
+
+      /* Tables */
+      table.report-tbl { width:100%; border-collapse:collapse; font-size:9pt; }
+      table.report-tbl thead tr { background:#1a2e4a; color:white; }
+      table.report-tbl thead th { padding:7px 9px; text-align:left; font-size:8pt; font-weight:700; letter-spacing:.5px; text-transform:uppercase; white-space:nowrap; }
+      table.report-tbl tbody tr:nth-child(even) { background:#f8fafc; }
+      table.report-tbl tbody tr:nth-child(odd)  { background:white; }
+      table.report-tbl tbody td { padding:7px 9px; border-bottom:1px solid #e2e8f0; vertical-align:top; line-height:1.4; }
+      table.report-tbl tfoot tr { background:#0f1e30; color:white; }
+      table.report-tbl tfoot td { padding:7px 9px; font-weight:700; font-size:9pt; }
+
+      /* Info table (property info, summary) */
+      table.info-tbl { width:100%; border-collapse:collapse; font-size:9.5pt; }
+      table.info-tbl td { padding:7px 10px; vertical-align:top; }
+      table.info-tbl tr:nth-child(even) td { background:#f8fafc; }
+      table.info-tbl tr:nth-child(odd)  td { background:white; }
+      table.info-tbl .lbl { font-weight:700; color:#64748b; white-space:nowrap; width:28%; }
+
+      /* Score cards */
+      .score-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:10px; margin:14px 0; }
+      .score-card { border-radius:8px; padding:12px; text-align:center; border:1px solid #e2e8f0; }
+      .score-val { font-size:26pt; font-weight:900; line-height:1; }
+      .score-lbl { font-size:8pt; color:#64748b; margin-top:4px; font-weight:600; text-transform:uppercase; letter-spacing:.5px; line-height:1.3; }
+
+      /* Financial metrics */
+      .fin-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:10px; margin:14px 0; }
+      .fin-cell { background:#f8fafc; border-radius:8px; padding:11px 12px; border:1px solid #e2e8f0; }
+      .fin-lbl { font-size:7.5pt; font-weight:700; text-transform:uppercase; letter-spacing:.7px; color:#94a3b8; }
+      .fin-val { font-size:13pt; font-weight:800; color:#1a2e4a; margin-top:3px; }
+
+      /* Executive summary box */
+      .exec-box { background:#f0f7ff; border-left:4px solid #1e40af; padding:13px 16px; border-radius:0 8px 8px 0; margin:14px 0; }
+      .exec-box-lbl { font-size:8pt; font-weight:800; text-transform:uppercase; letter-spacing:.8px; color:#1e40af; margin-bottom:5px; }
+      .exec-box-text { font-size:9.5pt; line-height:1.6; color:#1a1a1a; white-space:pre-wrap; }
+
+      /* Photo grid */
+      .photo-sec-grid { display:flex; flex-wrap:wrap; gap:8px; margin-top:10px; }
+      .photo-sec-grid img { width:135px; height:135px; object-fit:cover; border-radius:6px; border:1px solid #e2e8f0; }
+
+      /* Sign-off */
+      .signoff-block { border:1px solid #e2e8f0; border-radius:8px; overflow:hidden; }
+      .signoff-row { display:grid; grid-template-columns:180px 1fr 100px 1fr; border-bottom:1px solid #e2e8f0; }
+      .signoff-row:last-child { border-bottom:none; }
+      .signoff-lbl { padding:12px 14px; background:#f8fafc; font-weight:700; color:#64748b; font-size:9pt; display:flex; align-items:center; }
+      .signoff-val { padding:12px 14px; font-size:10pt; border-right:1px solid #e2e8f0; border-left:1px solid #e2e8f0; }
+
+      /* Legend */
+      .legend-grid { display:grid; grid-template-columns:repeat(5,1fr); gap:8px; margin-top:8px; }
+      .legend-cell { border-radius:6px; padding:9px 10px; text-align:center; border:1px solid #e2e8f0; }
+      .legend-num { font-size:16pt; font-weight:900; }
+      .legend-txt { font-size:7.5pt; font-weight:700; margin-top:3px; color:#334155; }
+      .legend-desc { font-size:7pt; color:#64748b; margin-top:2px; line-height:1.3; }
+
+      /* Utility */
+      .pb  { page-break-before:always; }
+      .pba { page-break-after:always; }
+      .no-break { page-break-inside:avoid; }
+      .mt12 { margin-top:12px; }
+      /* Allow natural breaks inside long sections; keep individual rows intact */
+      .section-wrap { page-break-inside:auto; }
+      table.report-tbl tbody tr { page-break-inside:avoid; }
+    </style>`;
+
+  // ── Running header ──
+  const runHdr=`<div class="rh">
+    <div class="rh-left">
+      <img src="${logoSm}" width="30" height="30">
+      <div class="rh-divider"></div>
+      <div class="rh-prop">${S.prop.name||'Site Inspection'}</div>
+      <div class="rh-divider"></div>
+      <div class="rh-type">Asset Management Division</div>
+    </div>
+    <div class="rh-date">${fmtDateShort(S.prop.date)}</div>
+  </div>`;
+
+  // ── Cover page ──
+  const cover=`<div class="cover">
+    <div class="cover-banner">
+      <div class="cover-logo-row">
+        <img src="${logoURI}" width="70" height="70">
+        <div>
+          <div class="cover-co-name">Poverni Sheikh Group</div>
+          <div class="cover-division">Asset Management Division</div>
+        </div>
+      </div>
+      <div class="cover-divider"></div>
+      <div class="cover-report-title">Self-Storage Site<br>Inspection Report</div>
+      <div class="cover-report-sub">Prepared by the Asset Management Division</div>
+    </div>
+    <div class="cover-body">
+      <div class="cover-property-block">
+        <div class="cover-property-name">${S.prop.name||'[Property Name]'}</div>
+        <div class="cover-property-addr">${[S.prop.addr,S.prop.city].filter(Boolean).join(' · ')||'[Address]'}</div>
+      </div>
+      <div class="cover-meta-grid">
+        <div class="cover-meta-cell"><div class="cmk">Inspection Date</div><div class="cmv">${fmtDate(S.prop.date)}</div></div>
+        <div class="cover-meta-cell"><div class="cmk">Inspector</div><div class="cmv">${S.prop.insp||'—'}</div></div>
+        <div class="cover-meta-cell"><div class="cmk">Staff Spoken To</div><div class="cmv">${S.prop.staff||'—'}</div></div>
+        <div class="cover-meta-cell"><div class="cmk">Overall Rating</div><div class="cmv">${S.ovr.overall?S.ovr.overall+' / 5 — '+R_LABEL[S.ovr.overall]:'Not Rated'}</div></div>
+        <div class="cover-meta-cell"><div class="cmk">Physical Occupancy</div><div class="cmv">${S.ovr.physocc||'—'}</div></div>
+        <div class="cover-meta-cell"><div class="cmk">Economic Occupancy</div><div class="cmv">${S.ovr.econocc||'—'}</div></div>
+      </div>
+    </div>
+    <div class="cover-footer">
+    </div>
+  </div>`;
+
+  // ── Page 2: Overview ──
+  const ratingCards=OVR_FIELDS.map(f=>{
+    const r=S.ovr[f.id]||'';
+    return `<div class="score-card" style="background:${r?R_BG[r]:'#f8fafc'};border-color:${r?R_COLOR[r]:'#e2e8f0'};">
+      <div class="score-val" style="color:${r?R_COLOR[r]:'#94a3b8'};">${r||'—'}</div>
+      <div class="score-lbl">${f.label}</div>
+    </div>`;
+  }).join('');
+
+  const finMetrics=`<div class="fin-grid">
+    <div class="fin-cell"><div class="fin-lbl">Physical Occ.</div><div class="fin-val">${S.ovr.physocc||'—'}</div></div>
+    <div class="fin-cell"><div class="fin-lbl">Economic Occ.</div><div class="fin-val">${S.ovr.econocc||'—'}</div></div>
+    <div class="fin-cell"><div class="fin-lbl">In-Place Rent/SF</div><div class="fin-val">${S.ovr.inrent||'—'}</div></div>
+    <div class="fin-cell"><div class="fin-lbl">Market Rent/SF</div><div class="fin-val">${S.ovr.mktrent||'—'}</div></div>
+  </div>`;
+
+  const execSummary=S.ovr.summary?`<div class="exec-box">
+    <div class="exec-box-lbl">Executive Summary / Key Findings</div>
+    <div class="exec-box-text">${S.ovr.summary}</div>
+  </div>`:'';
+
+  const propInfoTbl=`<table class="info-tbl">
+    <tr><td class="lbl">Property Name</td><td>${S.prop.name||'—'}</td><td class="lbl">Inspection Date</td><td>${fmtDate(S.prop.date)}</td></tr>
+    <tr><td class="lbl">Address</td><td>${S.prop.addr||'—'}</td><td class="lbl">Inspector</td><td>${S.prop.insp||'—'}</td></tr>
+    <tr><td class="lbl">City / State / ZIP</td><td>${S.prop.city||'—'}</td><td class="lbl">Staff Spoken To</td><td>${S.prop.staff||'—'}</td></tr>
+  </table>`;
+
+  const overviewPage=`<div class="pg-content">
+    <div class="sec-header"><span class="sec-header-title">Property Information</span></div>
+    <div class="color-bar"></div>${propInfoTbl}
+    <div class="sec-header mt12"><span class="sec-header-title">Overall Condition Summary</span></div>
+    <div class="color-bar"></div>
+    <div class="score-grid">${ratingCards}</div>
+    ${finMetrics}${execSummary}
+  </div>`;
+
+  // ── Inspection sections ──
+  let secPages='';
+  SECS.forEach((sec,si)=>{
+    const items=S.secs[sec.id].items;
+    let rows='';
+    sec.items.forEach((item,i)=>{
+      const d=items[i]||{}, r=d.rating||'', n=d.notes||'';
+      const bg=i%2===0?'white':'#f8fafc';
+      rows+=`<tr style="background:${bg};">
+        <td style="width:4%;text-align:center;font-weight:600;color:#94a3b8;">${i+1}</td>
+        <td style="width:44%;">${item}</td>
+        <td style="width:17%;text-align:center;">${r?`<span style="display:inline-block;padding:2px 9px;border-radius:20px;font-size:8pt;font-weight:700;background:${R_BG[r]};color:${R_COLOR[r]};">${r} — ${R_LABEL[r]}</span>`:''}</td>
+        <td style="width:35%;font-size:8.5pt;color:#334155;">${n}</td>
+      </tr>`;
+    });
+    const photos=S.secs[sec.id].photos;
+    const photoHtml=photos.length?`<div style="margin-top:12px;"><div style="font-size:8pt;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:#94a3b8;margin-bottom:8px;">Section Photos (${photos.length})</div>
+      <div class="photo-sec-grid">${photos.map((p,pi)=>`<div style="display:inline-block;width:135px;margin-bottom:4px;vertical-align:top;">
+        <img src="${p.src}" alt="Photo ${pi+1}" style="width:135px;height:135px;object-fit:cover;border-radius:6px;border:1px solid #e2e8f0;display:block;">
+        ${p.note?`<div style="font-size:7.5pt;color:#334155;margin-top:4px;line-height:1.4;word-break:break-word;">${p.note}</div>`:''}
+      </div>`).join('')}</div></div>`:'';
+
+    secPages+=`<div class="pb section-wrap">
+      <div class="sec-header"><span class="sec-header-title">${sec.name}</span><span class="sec-header-count">${sec.items.length} Items</span></div>
+      <div class="color-bar"></div>
+      <table class="report-tbl">
+        <thead><tr>
+          <th style="width:4%;text-align:center;">#</th>
+          <th style="width:44%;">Inspection Item</th>
+          <th style="width:17%;text-align:center;">Rating</th>
+          <th style="width:35%;">Notes / Condition</th>
+        </tr></thead>
+        <tbody>${rows}</tbody>
+      </table>
+      ${photoHtml}
+    </div>`;
+  });
+
+  // ── Action Items ──
+  let actionPage='';
+  if(S.actions.length>0){
+    let rows=S.actions.map((a,i)=>{
+      const bg=i%2===0?'white':'#f8fafc';
+      const pc=a.priority==='High'?'#b91c1c':a.priority==='Medium'?'#b45309':'#15803d';
+      const pb=a.priority==='High'?'#fee2e2':a.priority==='Medium'?'#fef3c7':'#dcfce7';
+      return `<tr style="background:${bg};">
+        <td style="text-align:center;font-weight:700;color:#94a3b8;">${i+1}</td>
+        <td>${a.desc||''}</td>
+        <td style="text-align:center;">${a.priority?`<span style="padding:2px 8px;border-radius:20px;font-size:8pt;font-weight:700;background:${pb};color:${pc};">${a.priority}</span>`:''}</td>
+        <td>${a.responsible||''}</td>
+        <td style="text-align:center;white-space:nowrap;">${a.dueDate?new Date(a.dueDate+'T12:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}):''}</td>
+        <td style="text-align:right;font-weight:600;">${a.cost?'$'+a.cost:''}</td>
+        <td style="text-align:center;">${a.status||''}</td>
+      </tr>`;
+    }).join('');
+    actionPage=`<div class="pb section-wrap">
+      <div class="sec-header mt12"><span class="sec-header-title">Action Items &amp; Follow-Up</span><span class="sec-header-count">${S.actions.length} Items · $${totalCost.toLocaleString()} Est. Total</span></div>
+      <div class="color-bar"></div>
+      <table class="report-tbl">
+        <thead><tr>
+          <th style="width:4%;text-align:center;">#</th>
+          <th style="width:28%;">Action Item Description</th>
+          <th style="width:10%;text-align:center;">Priority</th>
+          <th style="width:16%;">Responsible</th>
+          <th style="width:13%;text-align:center;">Due Date</th>
+          <th style="width:12%;text-align:right;">Est. Cost</th>
+          <th style="width:10%;text-align:center;">Status</th>
+        </tr></thead>
+        <tbody>${rows}</tbody>
+        <tfoot><tr>
+          <td colspan="5" style="text-align:right;letter-spacing:.5px;">TOTAL ESTIMATED COST</td>
+          <td style="text-align:right;">$${totalCost.toLocaleString()}</td>
+          <td></td>
+        </tr></tfoot>
+      </table>
+    </div>`;
+  }
+
+  // ── Sign-off & Legend ──
+  const soInsp=(document.getElementById('so_insp')||{}).value||S.prop.insp||'—';
+  const soDate=fmtDateShort((document.getElementById('so_date')||{}).value||S.prop.date);
+
+  const legendItems=[
+    {r:'1',lbl:'Critical',desc:'Immediate attention — safety/liability risk or significant revenue impact'},
+    {r:'2',lbl:'Poor',desc:'Major deficiency — repair/replacement needed within 30 days'},
+    {r:'3',lbl:'Fair',desc:'Moderate wear — schedule maintenance within 90 days'},
+    {r:'4',lbl:'Good',desc:'Minor wear — acceptable condition, monitor at next inspection'},
+    {r:'5',lbl:'Excellent',desc:'Like-new or recently renovated — no action needed'}
+  ];
+
+  const signoffPage=`<div class="pb pg-content">
+      <div class="sec-header"><span class="sec-header-title">Sign-Off &amp; Acknowledgment</span></div>
+      <div class="color-bar"></div>
+      <div class="signoff-block mt12">
+        <div class="signoff-row">
+          <div class="signoff-lbl">Inspector Signature</div>
+          <div class="signoff-val">${soInsp}</div>
+          <div class="signoff-lbl" style="border-left:1px solid #e2e8f0;">Date</div>
+          <div class="signoff-val">${soDate}</div>
+        </div>
+      </div>
+      <div class="sec-header" style="margin-top:24px;"><span class="sec-header-title">Rating Scale Reference</span></div>
+      <div class="color-bar"></div>
+      <div class="legend-grid mt12">
+        ${legendItems.map(l=>`<div class="legend-cell" style="background:${R_BG[l.r]};border-color:${R_COLOR[l.r]};">
+          <div class="legend-num" style="color:${R_COLOR[l.r]};">${l.r}</div>
+          <div class="legend-txt">${l.lbl}</div>
+          <div class="legend-desc">${l.desc}</div>
+        </div>`).join('')}
+      </div>
+      <div style="margin-top:30px;padding-top:14px;border-top:1px solid #e2e8f0;display:flex;align-items:center;gap:10px;">
+        <img src="${logoSm}" width="28" height="28">
+        <div style="font-size:8pt;color:#64748b;"><strong style="color:#1a2e4a;">POVERNI SHEIKH GROUP</strong> · Asset Management Division</div>
+      </div>
+  </div>`;
+
+  const html=css+runHdr+cover+overviewPage+secPages+actionPage+signoffPage;
+
+  document.getElementById('pv').innerHTML=html;
+  window.print();
+}
+
+// ═══════════════════════════════════════════
+//  INIT
+// ═══════════════════════════════════════════
+function init(){
+  // Inject logo into app header and welcome
+  document.getElementById('hdr-logo').innerHTML  = psgSVG(36, 36, 'white');
+  document.getElementById('wlc-logo').innerHTML  = psgSVG(80, 80, '#1a2e4a');
+
+  S.prop.date=todayStr();
+  loadSt(); writeForms();
+  buildOvrRatings(); syncOvrUI();
+  buildAllSections(); buildActionItems();
+  showStep(S.cur);
+}
+
+document.addEventListener('DOMContentLoaded', init);
+</script>
+</body>
+</html>
